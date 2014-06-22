@@ -1,0 +1,42 @@
+language: node_js
+
+node_js:
+  - 0.10.25
+
+services:
+  - mongodb
+
+env:
+  global:
+    - EB_TOOLS_DIR=/tmp/eb_tools EB_VERSION=AWS-ElasticBeanstalk-CLI-2.6.3
+    - EB_TOOLS=$EB_TOOLS_DIR/$EB_VERSION
+    - XUNIT_FILE=shippable/testresults/result.xml
+    - AWSAccessKeyId=AKIAJR6X3OIMPB5JIHMA
+    - secure: Zc+8kooaLX1d52nkLupklvv1qLJFC6gI9Sq+TcVFgx6vQB6/u5Ihd1Ex4fjEV2o4UXGtEY+CXxJ503n7Km0GT2t7vqu56KQdE+6mAjOhf6UL0HCIqOm9eg0ZZ/VAsaYlj8GDP2PQnkHhpa15pKt/HO7NDt8uHyQj+nZGAjCYujbYb/jIOSZp3LUFxKWZqSfRllYdSsrnYJ2WzGkv/ktuF9SiIbJ9HtH+fk7U8HnfiUoUPIXTe75oSi39KbGOW+xivVROrz4QLLVh/RGz2a5WIpe7bAhy8Dgvhf0DpOUxw0pa8qh+0EUPLeg+0xVgvwkG8QIZXr9F5QQYPcUxEU+3JA==
+
+before_install:
+  - if [ ! -e $EB_TOOLS ]; then wget -q -O /tmp/eb.zip https://s3.amazonaws.com/elasticbeanstalk/cli/$EB_VERSION.zip && mkdir -p $EB_TOOLS_DIR && unzip /tmp/eb.zip -d $EB_TOOLS_DIR; fi
+
+before_script: 
+  - mkdir -p shippable/testresults
+  - mkdir -p shippable/codecoverage
+  - mkdir -p ~/.elasticbeanstalk
+  - echo "AWSAccessKeyId=$AWSAccessKeyId" >> ~/.elasticbeanstalk/aws_credential_file
+  - echo "AWSSecretKey=$AWSSecretKey" >> ~/.elasticbeanstalk/aws_credential_file
+
+script:
+  - mkdir -p .elasticbeanstalk
+  - cp config .elasticbeanstalk/
+  - grunt
+
+after_success:
+  - ./node_modules/.bin/istanbul cover grunt -- -u tdd
+  - ./node_modules/.bin/istanbul report cobertura --dir  shippable/codecoverage/
+  - $EB_TOOLS/AWSDevTools/Linux/AWSDevTools-RepositorySetup.sh
+  - if [ $BRANCH = 'prod' ]; then ENV='sample-nodejs-env-prod'; else ENV='sample-nodejs-env'; fi
+  - >
+    export PATH=$PATH:$EB_TOOLS/eb/linux/python2.7/ && 
+      virtualenv ve && 
+      source ve/bin/activate && 
+      pip install boto==2.14.0 && 
+      eb push -e $ENV

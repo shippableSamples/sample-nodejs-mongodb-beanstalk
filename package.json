@@ -1,0 +1,28 @@
+{
+  "name": "sample-nodejs-mysql-beanstalk",
+  "version": "0.1.0",
+  "description": "Sample of how to setup CI to Elastic Beanstalk for Node.js+MySQL project",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Shippable/sample-nodejs-mysql-beanstalk.git"
+  },
+  "homepage": "https://github.com/Shippable/sample-nodejs-mysql-beanstalk",
+  "dependencies": {
+    "express": "~4.2.0",
+    "mongoose": "^3.8.12",
+    "when": "~3.2.3"
+  },
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "grunt": "^0.4.0",
+    "grunt-simple-mocha": "^0.4.0",
+    "istanbul": "^0.2.9",
+    "mocha": "^1.18.2",
+    "xunit-file": "0.0.5",
+    "chai-as-promised": "~4.1.1"
+  }
+}
