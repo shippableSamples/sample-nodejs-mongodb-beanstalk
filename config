@@ -1,0 +1,13 @@
+[global]
+ApplicationName=sample-nodejs-mongodb-beanstalk
+DevToolsEndpoint=git.elasticbeanstalk.us-west-2.amazonaws.com
+EnvironmentName=sample-nodejs-env
+OptionSettingFile=.elasticbeanstalk/optionsettings
+Region=us-west-2
+ServiceEndpoint=https://elasticbeanstalk.us-west-2.amazonaws.com
+
+[branches]
+prod=sample-nodejs-env-prod
+
+[branch:prod]
+EnvironmentName=sample-nodejs-env-prod
