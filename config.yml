@@ -1,0 +1,10 @@
+branch-defaults:
+  master:
+    environment: sample-nodejs-env
+  prod:
+    environment: sample-nodejs-env-prod
+global:
+  application_name: sample-nodejs-mongodb-beanstalk
+  default_region: us-west-2
+  profile: eb-cli
+  sc: git

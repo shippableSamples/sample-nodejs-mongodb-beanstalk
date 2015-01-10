@@ -6,19 +6,20 @@ Additionally, it shows how to deploy different branches to separate Elastic Bean
 
 Two approaches are available for handling deployment to multiple environments:
 
-1. Use `eb branch` command to associate your current branch with some environment. Then, copy `.elasticbeanstalk/config` file as `config`.
-You can also edit `config` file manually. For example, to associate `prod` branch with `sample-nodejs-env-prod`, add the following two
-sections to your `config` file:
+1. Use `eb use <env name>` command to associate your current branch with some environment.
+Then, copy `.elasticbeanstalk/config.yml` file as `config.yml`.
+You can also edit `config.yml` file manually. For example, to associate `prod` branch with `sample-nodejs-env-prod`, add the following
+entry to your `config.yml` file:
 
-        [branches]
-        prod=sample-nodejs-env-prod
+        branch-defaults:
+          ebcli-v3:
+            environment: sample-nodejs-env
+          prod:
+            environment: sample-nodejs-env-prod
 
-        [branch:prod]
-        EnvironmentName=sample-nodejs-env-prod
+  Now, whenever `eb deploy` command is executed while the current branch is `prod`, it will automatically push the designated environment.
 
-  Now, whenever `eb push` command is executed while the current branch is `prod`, it will automatically push the designated environment.
-
-2. Pass the environment as `-e` parameter to `eb push` command in your `after_success` block.
+2. Pass the environment as an argument to `eb deploy` command in your `after_success` block.
 You can choose the correct environment based on the value of the Shippable-supplied `BRANCH` variable:
 
         - >
@@ -27,12 +28,7 @@ You can choose the correct environment based on the value of the Shippable-suppl
           else
             ENV='sample-nodejs-env'
           fi
-        - >
-          export PATH=$PATH:$EB_TOOLS/eb/linux/python2.7/ && 
-            virtualenv ve && 
-            source ve/bin/activate && 
-            pip install boto==2.14.0 && 
-            eb push -e $ENV
+        - eb init && eb deploy $ENV
 
 For more detailed documentation, please see Shippable's continuous deployment section. http://docs.shippable.com/en/latest/config.html#continuous-deployment
 
