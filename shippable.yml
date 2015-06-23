@@ -8,35 +8,27 @@ services:
 
 env:
   global:
-    - EB_TOOLS_DIR=/tmp/eb_tools EB_VERSION=AWS-ElasticBeanstalk-CLI-2.6.3
-    - EB_TOOLS=$EB_TOOLS_DIR/$EB_VERSION
     - XUNIT_FILE=shippable/testresults/result.xml
-    - AWSAccessKeyId=AKIAJR6X3OIMPB5JIHMA
-    - secure: Zc+8kooaLX1d52nkLupklvv1qLJFC6gI9Sq+TcVFgx6vQB6/u5Ihd1Ex4fjEV2o4UXGtEY+CXxJ503n7Km0GT2t7vqu56KQdE+6mAjOhf6UL0HCIqOm9eg0ZZ/VAsaYlj8GDP2PQnkHhpa15pKt/HO7NDt8uHyQj+nZGAjCYujbYb/jIOSZp3LUFxKWZqSfRllYdSsrnYJ2WzGkv/ktuF9SiIbJ9HtH+fk7U8HnfiUoUPIXTe75oSi39KbGOW+xivVROrz4QLLVh/RGz2a5WIpe7bAhy8Dgvhf0DpOUxw0pa8qh+0EUPLeg+0xVgvwkG8QIZXr9F5QQYPcUxEU+3JA==
+    - AWSAccessKeyId=AKIAJJL2U6T3F3Y5JIGA
+    - secure: tD2cjFcQ6xqzxhBjqu2y8XIqyw5kbwd2IhhocYJYtHlBAxVATmL5VTaH8WlqKC5O5wzTujekVmhlJ5eNrmVa3kBqDxKd4Go+oELoM0crDBepSudRoVHd11ee+YRhsgCuj3tfXSR+bUJV9wBcvZBRcTwDs1Nz82zX45R3pQzMIQ0JbSTGIppXtonYCpw9yx1JUpMtOf6XwcXfnOyUKWGsE8Abj9AOZxQ0oGalEtdSbrBUIY8iwzV0j/VzijfZzRpAK23AvOZLVNlp0+JCK+5OFlSOgVn4KV9j6lFA4MpT4dBacYItXNOkLVpx5fxVfq+r6CE8YlQObv4V0nJWTf2wtw==
 
 before_install:
-  - if [ ! -e $EB_TOOLS ]; then wget -q -O /tmp/eb.zip https://s3.amazonaws.com/elasticbeanstalk/cli/$EB_VERSION.zip && mkdir -p $EB_TOOLS_DIR && unzip /tmp/eb.zip -d $EB_TOOLS_DIR; fi
+  - pip install awsebcli
 
 before_script: 
   - mkdir -p shippable/testresults
   - mkdir -p shippable/codecoverage
-  - mkdir -p ~/.elasticbeanstalk
-  - echo "AWSAccessKeyId=$AWSAccessKeyId" >> ~/.elasticbeanstalk/aws_credential_file
-  - echo "AWSSecretKey=$AWSSecretKey" >> ~/.elasticbeanstalk/aws_credential_file
+  - mkdir -p ~/.aws
+  - echo '[profile eb-cli]' > ~/.aws/config
+  - echo "aws_access_key_id = $AWSAccessKeyId" >> ~/.aws/config
+  - echo "aws_secret_access_key = $AWSSecretKey" >> ~/.aws/config
 
 script:
   - mkdir -p .elasticbeanstalk
-  - cp config .elasticbeanstalk/
+  - cp config.yml .elasticbeanstalk/
   - grunt
 
 after_success:
   - ./node_modules/.bin/istanbul cover grunt -- -u tdd
   - ./node_modules/.bin/istanbul report cobertura --dir  shippable/codecoverage/
-  - $EB_TOOLS/AWSDevTools/Linux/AWSDevTools-RepositorySetup.sh
-  - if [ $BRANCH = 'prod' ]; then ENV='sample-nodejs-env-prod'; else ENV='sample-nodejs-env'; fi
-  - >
-    export PATH=$PATH:$EB_TOOLS/eb/linux/python2.7/ && 
-      virtualenv ve && 
-      source ve/bin/activate && 
-      pip install boto==2.14.0 && 
-      eb push -e $ENV
+  - eb init && eb deploy
